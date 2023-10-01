@@ -6,11 +6,11 @@ LIBS    = -lfl
 
 all: $(SCANNER)
 
-$(SCANNER).c: %.c: %.l
-	$(LEX) -o $@ $<
+$(SCANNER): src/$(SCANNER)
+	cp $^ $@
 
-$(SCANNER): $(SCANNER).c
-	$(CC) $(CCFLAGS) $< -o $(SCANNER) $(LIBS)
+src/$(SCANNER):
+	make $(SCANNER) -C src/
 
 prepare:
 	# we have installed the package meet the basic needs
@@ -29,7 +29,8 @@ pack:
 
 clean:
 	make clean -C test/
-	$(RM) $(SCANNER) $(SCANNER:=.c)
+	make clean -C src/
+	$(RM) $(SCANNER)
 
 DOCKERHUB_ACCOUNT=plaslab
 IMAGE_NAME = compiler-f20-hw1
