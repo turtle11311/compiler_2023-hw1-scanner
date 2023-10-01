@@ -3,3 +3,8 @@ scanner
 
 # testing output
 test/output
+
+# generated files
+*.tab.c
+*.tab.h
+*.yy.c

@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include "parser.tab.h"
 
-#define YY_USER_ACTION { listing(yytext); if (yytext[0]=='\n') { lineNumber++; lineLocation=1; } else { lineLocation+=strlen(yytext); } }
+#define YY_USER_ACTION { listing("%s", yytext); if (yytext[0]=='\n') { lineNumber++; lineLocation=1; } else { lineLocation+=strlen(yytext); } }
 
 static int lineNumber = 1;
 static int lineLocation = 1;
@@ -128,7 +128,7 @@ IDENTIFIER {ALPHA}{ALNUMUNDER}*
 (?i:array)                    return(KARRAY);
 "["                           return(LBRAC);
 "]"                           return(RBRAC);
-[+-]?({REAL}|{SCIENTIFIC})    return(NUM);
+({REAL}|{SCIENTIFIC})         return(NUM);
 (?i:string)                   return(KSTRING);
 \"([^"])*\"                   return(STRINGCONST);
 (?i:of)                       return(KOF);
@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
 
   for (i = 0; 1==1; i ++) {
     tok = yylex();
-    scannerLog("token(type:%-10s) on line%5d,%5lu : %s\n", 
+    scannerLog("token(type:%-10s) on line%5d,%4lu : %s\n", 
           tokenName(tok), lineNumber, lineLocation-strlen(yytext), yytext);
   }
   return(0);

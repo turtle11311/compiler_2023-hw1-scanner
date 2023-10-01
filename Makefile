@@ -6,8 +6,10 @@ LIBS    = -lfl
 
 all: $(SCANNER)
 
-$(SCANNER): src/$(SCANNER)
-	cp $^ $@
+$(SCANNER): src/$(SCANNER) src/
+	cp $< $@
+
+.PHONY: src/$(SCANNER)
 
 src/$(SCANNER):
 	make $(SCANNER) -C src/
