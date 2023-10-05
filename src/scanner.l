@@ -12,29 +12,20 @@
 #include <stdarg.h>
 #include "parser.tab.h"
 
-#define YY_USER_ACTION { listing("%s", yytext); if (yytext[0]=='\n') { lineNumber++; lineLocation=1; } else { lineLocation+=strlen(yytext); } }
+#define YY_USER_ACTION { if (yytext[0]=='\n') { lineNumber++; lineLocation=1; } else { lineLocation+=strlen(yytext); } }
+
+#define LIST_SRC { if (isListSrc) fprintf(stdout, "%s", yytext); }
 
 static int lineNumber = 1;
 static int lineLocation = 1;
 static int commentStack = 0;
 
-static int listToken = true;
+static int isListSrc = true;
 
 void scannerLog(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  if (listToken != false) {
-    vfprintf(stderr, format, args);
-  }
-  va_end(args);
-}
-
-void listing(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  if (listToken != false) {
-    vfprintf(stdout, format, args);
-  }
+  vfprintf(stderr, format, args);
   va_end(args);
 }
 
@@ -102,7 +93,7 @@ const char* tokenName(int tok) {
 }
 
 %}
-INTEGER ([1-9][0-9]*)|[0]
+INTEGER [0-9]+
 REAL {INTEGER}("."0*{INTEGER})?
 SCIENTIFIC {REAL}(?i:e)[+-]?{INTEGER}
 NQUOTE [^']
@@ -114,75 +105,76 @@ IDENTIFIER {ALPHA}{ALNUMUNDER}*
 
 %%
 
-"#pragma\ list\ on"         { listToken = true; }
-"#pragma\ list\ off"        { listToken = false; }
+#\ *pragma\ +list\ +on        { isListSrc = true; LIST_SRC; }
+#\ *pragma\ +list\ +off       { isListSrc = false; LIST_SRC; }
 
-(?i:program)                  return(KPROGRAM);
-"("                           return(LPAREN);
-")"                           return(RPAREN);
-";"                           return(SEMICOLON);
-":"                           return(COLON);
-"."                           return(DOT);
-","                           return(COMMA);
-(?i:var)                      return(KVAR);
-(?i:array)                    return(KARRAY);
-"["                           return(LBRAC);
-"]"                           return(RBRAC);
-({REAL}|{SCIENTIFIC})         return(NUM);
-(?i:string)                   return(KSTRING);
-\"([^"])*\"                   return(STRINGCONST);
-(?i:of)                       return(KOF);
-(?i:integer)                  return(KINTEGER);
-(?i:real)                     return(KREAL);
-(?i:function)                 return(KFUNCTION);
-(?i:procedure)                return(KPROCEDURE);
-(?i:begin)                    return(KBEGIN);
-(?i:end)                      return(KEND);
-":="                          return(ASSIGNMENT);
-(?i:if)                       return(KIF);
-(?i:then)                     return(KTHEN);
-(?i:else)                     return(KELSE);
-(?i:while)                    return(KWHILE);
-(?i:do)                       return(KDO);
-"<"                           return(LESS);
-">"                           return(GREATER);
-"<="                          return(LESSEQUAL);
-">="                          return(GREATEREQUAL);
-"="                           return(EQUAL);
-"!="                          return(NOTEQUAL);
-"+"                           return(PLUS);
-"-"                           return(MINUS);
-"*"                           return(STAR);
-"/"                           return(SLASH);
-(?i:not)                      return(KNOT);
-".."                          return(DOTDOT);
-(?i:and)                      return(KAND);
-(?i:or)                       return(KOR);
+(?i:program)                  { LIST_SRC; return(KPROGRAM); }
+"("                           { LIST_SRC; return(LPAREN); }
+")"                           { LIST_SRC; return(RPAREN); }
+";"                           { LIST_SRC; return(SEMICOLON); }
+":"                           { LIST_SRC; return(COLON); }
+"."                           { LIST_SRC; return(DOT); }
+","                           { LIST_SRC; return(COMMA); }
+(?i:var)                      { LIST_SRC; return(KVAR); }
+(?i:array)                    { LIST_SRC; return(KARRAY); }
+"["                           { LIST_SRC; return(LBRAC); }
+"]"                           { LIST_SRC; return(RBRAC); }
+({REAL}|{SCIENTIFIC})         { LIST_SRC; return(NUM); }
+(?i:string)                   { LIST_SRC; return(KSTRING); }
+\"([^"])*\"                   { LIST_SRC; return(STRINGCONST); }
+(?i:of)                       { LIST_SRC; return(KOF); }
+(?i:integer)                  { LIST_SRC; return(KINTEGER); }
+(?i:real)                     { LIST_SRC; return(KREAL); }
+(?i:function)                 { LIST_SRC; return(KFUNCTION); }
+(?i:procedure)                { LIST_SRC; return(KPROCEDURE); }
+(?i:begin)                    { LIST_SRC; return(KBEGIN); }
+(?i:end)                      { LIST_SRC; return(KEND); }
+":="                          { LIST_SRC; return(ASSIGNMENT); }
+(?i:if)                       { LIST_SRC; return(KIF); }
+(?i:then)                     { LIST_SRC; return(KTHEN); }
+(?i:else)                     { LIST_SRC; return(KELSE); }
+(?i:while)                    { LIST_SRC; return(KWHILE); }
+(?i:do)                       { LIST_SRC; return(KDO); }
+"<"                           { LIST_SRC; return(LESS); }
+">"                           { LIST_SRC; return(GREATER); }
+"<="                          { LIST_SRC; return(LESSEQUAL); }
+">="                          { LIST_SRC; return(GREATEREQUAL); }
+"="                           { LIST_SRC; return(EQUAL); }
+"!="                          { LIST_SRC; return(NOTEQUAL); }
+"+"                           { LIST_SRC; return(PLUS); }
+"-"                           { LIST_SRC; return(MINUS); }
+"*"                           { LIST_SRC; return(STAR); }
+"/"                           { LIST_SRC; return(SLASH); }
+(?i:not)                      { LIST_SRC; return(KNOT); }
+".."                          { LIST_SRC; return(DOTDOT); }
+(?i:and)                      { LIST_SRC; return(KAND); }
+(?i:or)                       { LIST_SRC; return(KOR); }
 
-{IDENTIFIER}                  return(IDENTIFIER);
+{IDENTIFIER}                  { LIST_SRC; return(IDENTIFIER); }
 
-"//".*                        { scannerLog("[INFO ] line%5d:%3lu comment string\n", lineNumber, lineLocation-strlen(yytext)); }
+"//".*                        { scannerLog("[INFO ] line%5d:%3lu comment string\n", lineNumber, lineLocation-strlen(yytext)); LIST_SRC; }
 "/*"                          { BEGIN(CXXCOMMENT); commentStack=1; 
                                 scannerLog("[INFO ] line%5d:%3lu comment string start\n", 
-                                  lineNumber, lineLocation-strlen(yytext), yytext);
+                                  lineNumber, lineLocation-strlen(yytext), yytext); LIST_SRC;
                               }
-<CXXCOMMENT>"/*"              { commentStack++; }
+<CXXCOMMENT>"/*"              { commentStack++; LIST_SRC;}
 <CXXCOMMENT>"*/"              { 
                                 commentStack--;
                                 if (commentStack <= 0) {
                                   BEGIN(INITIAL);
                                   scannerLog("[INFO ] line%5d:%3lu comment string end\n", lineNumber, lineLocation-strlen(yytext));
                                 }
+                                LIST_SRC; 
                               }
-<CXXCOMMENT>.|\n              { }
+<CXXCOMMENT>.|\n              { LIST_SRC; }
 
-[ \t\f]    ;
+[ \t\f]                       { LIST_SRC; }
 
-\r    ;
-<INITIAL>\n    ;
+\r                            { LIST_SRC; }
+<INITIAL>\n                   { LIST_SRC; }
 
 
-.    { fprintf(stderr,"[ERROR] line%5d:%3lu lexical analyzer error %s\n", lineNumber, lineLocation-strlen(yytext), yytext); }
+.    { fprintf(stderr,"[ERROR] line%5d:%3lu lexical analyzer error %s\n", lineNumber, lineLocation-strlen(yytext), yytext); LIST_SRC; }
 
 %%
 
