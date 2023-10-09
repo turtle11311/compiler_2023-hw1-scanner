@@ -34,7 +34,7 @@ enum TokenType
   TokenTypeUNKNOW=0, TokenTypeIDENTIFIER, TokenTypeKEYWORD, TokenTypeNUMBER, TokenTypeSTRING
 };
 
-const char const TokenTypeName[][11] = {
+const char TokenTypeName[][11] = {
   "UNKNOW", "IDENTIFIER", "KEYWORD", "NUMBER", "STRING"
 };
 
@@ -98,8 +98,9 @@ REAL {INTEGER}("."0*{INTEGER})?
 SCIENTIFIC {REAL}(?i:e)[+-]?{INTEGER}
 NQUOTE [^']
 ALPHA [a-zA-Z]
+ALPHANUM [a-zA-Z0-9]
 ALNUMUNDER [a-zA-Z0-9_]
-IDENTIFIER {ALPHA}{ALNUMUNDER}*
+IDENTIFIER {ALPHA}|{ALPHA}{ALNUMUNDER}*{ALPHANUM}
 
 %x CXXCOMMENT
 

@@ -19,4 +19,4 @@ parser.tab.h: parser.y
 
 .PHONY: clean
 clean:
-	rm $(PROGRAM) *.tab.* *.yy.* 
+	rm -f $(PROGRAM) *.tab.* *.yy.* 

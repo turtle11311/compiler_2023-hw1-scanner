@@ -25,14 +25,13 @@ test: all
 
 pack:
 	make clean
-	zip -r icd22-hw1.zip . -x ".*" -x "*.zip" -x "test/*"
+	zip -r icd22-hw1.zip . -x ".*" -x "*.zip" -x "test/*" -x $(SCANNER)
 
 .PHONY: clean
 
 clean:
 	make clean -C test/
 	make clean -C src/
-	$(RM) $(SCANNER)
 
 DOCKERHUB_ACCOUNT=plaslab
 IMAGE_NAME = compiler-f20-hw1
